@@ -1,0 +1,7 @@
+--- Data Ruas Pipa ---
+['Area', 'Ruas Pipa', 'Inch', 'Km', 'Kapasitas Desain (BOPD)', 'Tarif Pipa\n(USD/BBL)']
+[{'Area': 'CSA', 'Ruas Pipa': 'Tempino - Plaju', 'Inch': '8', 'Km': 262.0, 'Kapasitas Desain (BOPD)': 24000.0, 'Tarif Pipa\n(USD/BBL)': '6,10'}, {'Area': 'ROKAN', 'Ruas Pipa': 'Rokan', 'Inch': '4-24', 'Km': 367.0, 'Kapasitas Desain (BOPD)': 280000.0, 'Tarif Pipa\n(USD/BBL)': '2,58'}]
+
+--- Data Volume & Realisasi ---
+['Area', 'Shipper', 'Titik Terima', 'Titik Serah', 'Target Volume (MMSCFD)', 'Realisasi (MMSCFD)']
+[{'Area': 'CSA', 'Shipper': 'PEP Asset 1 Field Jambi ', 'Titik Terima': 'SPPP Tempino Km.265', 'Titik Serah': 'Km.03 Sei. Gerong', 'Target Volume (MMSCFD)': '4404,39', 'Realisasi (MMSCFD)': '6368,61'}, {'Area': 'CSA', 'Shipper': 'PEP Asset 1 Field Ramba', 'Titik Terima': 'Km. 139', 'Titik Serah': 'Km.03 Sei. Gerong', 'Target Volume (MMSCFD)': '1235,76', 'Realisasi (MMSCFD)': '947,92'}]

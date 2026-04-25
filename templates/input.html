@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Contract Entry - Pertagas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .form-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+
+        .step-circle.active {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.875rem;
+            color: #4b5563;
+            font-weight: 500;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: #e5e7eb;
+            z-index: 1;
+        }
+
+        .progress-line-fill {
+            height: 100%;
+            background-color: var(--primary-blue);
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        /* Form Steps */
+        .form-step {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Inputs */
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 113, 188, 0.1);
+        }
+
+        /* Deal Type Cards */
+        .deal-type-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .deal-type-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .deal-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .deal-card:hover {
+            border-color: rgba(0, 113, 188, 0.5);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .deal-card.selected {
+            border-color: var(--primary-blue);
+            background-color: rgba(0, 113, 188, 0.05);
+            transform: scale(1.02);
+            color: var(--primary-blue);
+        }
+
+        .deal-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .deal-label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .deal-card.selected .deal-label {
+            color: var(--primary-blue);
+        }
+
+        /* File Upload */
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--primary-blue);
+            background-color: rgba(0, 113, 188, 0.05);
+        }
+
+        .file-list {
+            margin-top: 16px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.875rem;
+        }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+        }
+
+        .btn-secondary {
+            background-color: white;
+            border: 2px solid #d1d5db;
+            color: #4b5563;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f9fafb;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #00447A;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Review Section */
+        .review-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            background: #f9fafb;
+            padding: 24px;
+            border-radius: 12px;
+        }
+
+        .review-item label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .review-item p {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        /* Input Icon */
+        .input-with-icon input:focus+span {
+            color: var(--primary-blue);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main-layout flex">
+        <!-- Reusing Sidebar structure if available, otherwise just header/container -->
+        <header class="site-header">
+            <div class="container nav-flex">
+                <a href="{{ url_for('index') }}" class="brand-logo">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Pertamina Gas">
+                </a>
+                <div class="hamburger" id="hamburger-menu">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <nav class="popup-nav-container" id="main-nav">
+                <ul class="nav-tiles-grid">
+                    <li class="nav-tile-item"><a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+                    <li class="nav-tile-item"><a href="{{ url_for('profile') }}">Company Profile</a></li>
+                    <li class="nav-tile-item"><a href="{{ url_for('pricing_map') }}">Peta & Tarif</a></li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-tile-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="nav-tile-item"><a href="{{ url_for('insights') }}">Insights</a></li>
+                    <li class="nav-tile-item"><a href="{{ url_for('input_data') }}">Input Data</a></li>
+                    <li class="nav-tile-item logout-tile" style="grid-column: span 2;"><a href="{{ url_for('logout') }}">Logout</a></li>
+                    {% else %}
+                    <li class="nav-tile-item login-tile" style="grid-column: span 2;"><a href="{{ url_for('login') }}">Login</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <script>
+                document.getElementById('hamburger-menu').addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const nav = document.getElementById('main-nav');
+                    nav.classList.toggle('active');
+                });
+            </script>
+            </div>
+        </header>
+
+        <main style="flex: 1; background: #f8fafc; min-height: 100vh; padding: 100px 20px 40px;">
+            <div class="container">
+                <div class="mb-8 text-center" style="margin-bottom: 32px;">
+                    <h1 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin-bottom: 8px;">New Contract
+                        Entry</h1>
+                    <p style="color: #6b7280;">Create a new gas contract with comprehensive details</p>
+                </div>
+
+                <div class="form-card">
+                    <!-- Progress Bar -->
+                    <div class="progress-container">
+                        <div class="progress-line">
+                            <div class="progress-line-fill" id="progressFill"></div>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-circle active" id="stepCircle1">1</div>
+                            <span class="step-label">Partner Info</span>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-circle" id="stepCircle2">2</div>
+                            <span class="step-label">Technical Details</span>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-circle" id="stepCircle3">3</div>
+                            <span class="step-label">Review</span>
+                        </div>
+                    </div>
+
+                    <form id="contractForm" action="{{ url_for('input_data') }}" method="POST"
+                        enctype="multipart/form-data">
+
+                        <!-- Step 1: Partner Info -->
+                        <div class="form-step active" id="step1">
+                            <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 24px;">Partner Information
+                            </h2>
+
+                            <!-- Toggle Switch -->
+                            <div class="toggle-container"
+                                style="display: flex; background: #e5e7eb; padding: 4px; border-radius: 8px; width: fit-content; margin-bottom: 24px;">
+                                <button type="button" id="btnExisting" class="toggle-btn active"
+                                    onclick="setMode('existing')"
+                                    style="padding: 8px 16px; border: none; background: white; border-radius: 6px; font-weight: 600; color: var(--primary-blue); cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                                    Find Existing
+                                </button>
+                                <button type="button" id="btnNew" class="toggle-btn" onclick="setMode('new')"
+                                    style="padding: 8px 16px; border: none; background: transparent; border-radius: 6px; font-weight: 500; color: #6b7280; cursor: pointer; transition: all 0.2s;">
+                                    New Partner
+                                </button>
+                            </div>
+
+                            <div style="margin-bottom: 24px;">
+                                <label class="form-label">Partner Name</label>
+
+                                <!-- Search Mode -->
+                                <div id="searchMode">
+                                    <div class="input-with-icon" style="position: relative;">
+                                        <span
+                                            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; display: flex;">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <circle cx="11" cy="11" r="8"></circle>
+                                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                            </svg>
+                                        </span>
+                                        <input list="partnersList" name="partnerNameSearch" id="partnerNameSearch"
+                                            class="form-control" style="padding-left: 45px;"
+                                            placeholder="Search existing partner..."
+                                            onchange="syncPartnerName(this.value)">
+                                        <datalist id="partnersList">
+                                            {% for p in partners %}
+                                            <option value="{{ p }}">
+                                                {% endfor %}
+                                        </datalist>
+                                    </div>
+                                    <p style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">Select from
+                                        registered partners</p>
+                                </div>
+
+                                <!-- New Input Mode -->
+                                <div id="inputMode" style="display: none;">
+                                    <div class="input-with-icon" style="position: relative;">
+                                        <span
+                                            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; display: flex;">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                            </svg>
+                                        </span>
+                                        <input type="text" name="partnerNameInput" id="partnerNameInput"
+                                            class="form-control" style="padding-left: 45px;"
+                                            placeholder="Enter new company name..."
+                                            onchange="syncPartnerName(this.value)">
+                                    </div>
+                                    <p style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">Register a new
+                                        partner entity</p>
+                                </div>
+
+                                <!-- Hidden field to store final value -->
+                                <input type="hidden" name="partnerName" id="partnerName">
+                            </div>
+
+                            <!-- Initial Fields -->
+                            <div class="grid-row"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                                <div>
+                                    <label class="form-label">Shipper Initial</label>
+                                    <input type="text" name="shipper_initial" id="shipperInitial" class="form-control"
+                                        placeholder="e.g. PG-XXX" required>
+                                </div>
+                                <div>
+                                    <label class="form-label">Area Initial</label>
+                                    <select name="area_initial" id="areaInitial" class="form-control" required>
+                                        <option value="" disabled selected>Select Area</option>
+                                        <option value="OSCA">OSCA</option>
+                                        <option value="ORA">ORA</option>
+                                        <option value="ONSA">ONSA</option>
+                                        <option value="OSSA">OSSA</option>
+                                        <option value="ODA">ODA</option>
+                                        <option value="OWJA">OWJA</option>
+                                        <option value="OEJA">OEJA</option>
+                                        <option value="OKA">OKA</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="form-label">Deal Type</label>
+                                <input type="hidden" name="dealType" id="dealTypeInput" required>
+                                <div class="deal-type-grid">
+                                    <div class="deal-card" onclick="selectDeal('transport', this)">
+                                        <div class="deal-icon">
+                                            <!-- Truck/Pipeline like Icon -->
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <rect x="1" y="3" width="15" height="13"></rect>
+                                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                            </svg>
+                                        </div>
+                                        <div class="deal-label">Transport</div>
+                                    </div>
+                                    <div class="deal-card" onclick="selectDeal('trading', this)">
+                                        <div class="deal-icon">
+                                            <!-- Handshake / Business Icon -->
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="deal-label">Trading</div>
+                                    </div>
+                                    <div class="deal-card" onclick="selectDeal('processing', this)">
+                                        <div class="deal-icon">
+                                            <!-- Factory Icon -->
+                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <path
+                                                    d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z">
+                                                </path>
+                                                <path d="M17 18h1"></path>
+                                                <path d="M12 18h1"></path>
+                                                <path d="M7 18h1"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="deal-label">Processing</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Technical Details -->
+                        <div class="form-step" id="step2">
+                            <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 24px;">Technical Details</h2>
+
+                            <div class="grid-row"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                                <div>
+                                    <label class="form-label">Volume</label>
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="number" step="0.01" name="volume" id="volume" class="form-control"
+                                            placeholder="0.00" required>
+                                        <select name="unit" id="unit" class="form-control" style="width: 120px;">
+                                            <option value="MMSCFD">MMSCFD</option>
+                                            <option value="Tons">Tons</option>
+                                            <option value="M³">M³</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid-row"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                                <div>
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" name="startDate" id="startDate" class="form-control" required>
+                                </div>
+                                <div>
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" name="endDate" id="endDate" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="form-label">Legal Documents</label>
+                                <div class="upload-area" id="dropZone">
+                                    <div style="font-size: 2rem; margin-bottom: 12px;">📄</div>
+                                    <p style="font-weight: 500; margin-bottom: 4px;">Drag & Drop Legal Documents
+                                        (PDF/Docx)</p>
+                                    <p style="font-size: 0.875rem; color: #6b7280;">or click to browse</p>
+                                    <input type="file" name="documents" id="fileInput" multiple accept=".pdf,.doc,.docx"
+                                        style="display: none;">
+                                </div>
+                                <div class="file-list" id="fileList"></div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Review -->
+                        <div class="form-step" id="step3">
+                            <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 24px;">Review & Submit</h2>
+
+                            <div class="review-grid">
+                                <div class="review-item">
+                                    <label>Partner Name</label>
+                                    <p id="reviewPartner">-</p>
+                                </div>
+                                <div class="review-item">
+                                    <label>Deal Type</label>
+                                    <p id="reviewDeal">-</p>
+                                </div>
+                                <div class="review-item">
+                                    <label>Volume</label>
+                                    <p id="reviewVolume">-</p>
+                                </div>
+                                <div class="review-item">
+                                    <label>Duration</label>
+                                    <p id="reviewDuration">-</p>
+                                </div>
+                                <div class="review-item" style="grid-column: span 2;">
+                                    <label>Documents</label>
+                                    <p id="reviewFiles">0 file(s) uploaded</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="btn-row">
+                            <button type="button" class="btn btn-secondary" id="prevBtn" onclick="changeStep(-1)"
+                                disabled>Previous</button>
+                            <button type="button" class="btn btn-primary" id="nextBtn"
+                                onclick="changeStep(1)">Next</button>
+                            <button type="submit" class="btn btn-primary" id="submitBtn" style="display: none;">Submit
+                                Contract</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 3;
+
+        function updateUI() {
+            // Steps visibility
+            document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+            document.getElementById('step' + currentStep).classList.add('active');
+
+            // Progress Bar
+            document.getElementById('stepCircle1').classList.toggle('active', currentStep >= 1);
+            document.getElementById('stepCircle2').classList.toggle('active', currentStep >= 2);
+            document.getElementById('stepCircle3').classList.toggle('active', currentStep >= 3);
+
+            const fillPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            document.getElementById('progressFill').style.width = fillPercent + '%';
+
+            // Buttons
+            document.getElementById('prevBtn').disabled = currentStep === 1;
+
+            if (currentStep === totalSteps) {
+                document.getElementById('nextBtn').style.display = 'none';
+                document.getElementById('submitBtn').style.display = 'block';
+                updateReviewData();
+            } else {
+                document.getElementById('nextBtn').style.display = 'block';
+                document.getElementById('submitBtn').style.display = 'none';
+            }
+        }
+
+        function setMode(mode) {
+            const btnExisting = document.getElementById('btnExisting');
+            const btnNew = document.getElementById('btnNew');
+            const searchMode = document.getElementById('searchMode');
+            const inputMode = document.getElementById('inputMode');
+            const searchInput = document.getElementById('partnerNameSearch');
+            const inputInput = document.getElementById('partnerNameInput');
+
+            if (mode === 'existing') {
+                btnExisting.style.background = 'white';
+                btnExisting.style.color = 'var(--primary-blue)';
+                btnExisting.style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
+
+                btnNew.style.background = 'transparent';
+                btnNew.style.color = '#6b7280';
+                btnNew.style.boxShadow = 'none';
+
+                searchMode.style.display = 'block';
+                inputMode.style.display = 'none';
+
+                // Reset new input
+                inputInput.value = '';
+                syncPartnerName(searchInput.value);
+            } else {
+                btnNew.style.background = 'white';
+                btnNew.style.color = 'var(--primary-blue)';
+                btnNew.style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
+
+                btnExisting.style.background = 'transparent';
+                btnExisting.style.color = '#6b7280';
+                btnExisting.style.boxShadow = 'none';
+
+                searchMode.style.display = 'none';
+                inputMode.style.display = 'block';
+
+                // Reset search input
+                searchInput.value = '';
+                syncPartnerName(inputInput.value);
+            }
+        }
+
+        function syncPartnerName(val) {
+            document.getElementById('partnerName').value = val;
+        }
+
+        function changeStep(delta) {
+            // Validation before moving next
+            if (delta === 1) {
+                if (currentStep === 1) {
+                    if (!document.getElementById('partnerName').value) { alert('Please enter or select Partner Name'); return; }
+                    if (!document.getElementById('dealTypeInput').value) { alert('Please select a Deal Type'); return; }
+                }
+                if (currentStep === 2) {
+                    if (!document.getElementById('volume').value) { alert('Please enter Volume'); return; }
+                    if (!document.getElementById('startDate').value) { alert('Please enter Start Date'); return; }
+                    if (!document.getElementById('endDate').value) { alert('Please enter End Date'); return; }
+                }
+            }
+
+            const newStep = currentStep + delta;
+            if (newStep >= 1 && newStep <= totalSteps) {
+                currentStep = newStep;
+                updateUI();
+            }
+        }
+
+        // Deal Type Selection
+        function selectDeal(type, cardElement) {
+            document.getElementById('dealTypeInput').value = type;
+            document.querySelectorAll('.deal-card').forEach(el => el.classList.remove('selected'));
+            cardElement.classList.add('selected');
+        }
+
+        // File Upload Logic
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                try {
+                    const dt = new DataTransfer();
+                    Array.from(files).forEach(file => dt.items.add(file));
+                    fileInput.files = dt.files;
+                } catch (e) {
+                    console.log("File sync not supported fully", e);
+                }
+
+                renderFileList();
+            }
+        }
+
+        function renderFileList() {
+            fileList.innerHTML = '';
+            Array.from(fileInput.files).forEach(file => {
+                const div = document.createElement('div');
+                div.className = 'file-item';
+                div.innerHTML = `<span>${file.name}</span> <span style="color:green">✓</span>`;
+                fileList.appendChild(div);
+            });
+        }
+
+        function updateReviewData() {
+            document.getElementById('reviewPartner').textContent = document.getElementById('partnerName').value;
+            const dealType = document.getElementById('dealTypeInput').value;
+            document.getElementById('reviewDeal').textContent = dealType.charAt(0).toUpperCase() + dealType.slice(1);
+
+            const vol = document.getElementById('volume').value;
+            const unit = document.getElementById('unit').value;
+            document.getElementById('reviewVolume').textContent = `${vol} ${unit}`;
+
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            document.getElementById('reviewDuration').textContent = `${start} to ${end}`;
+
+            const count = fileInput.files.length;
+            document.getElementById('reviewFiles').textContent = `${count} file(s) selected`;
+        }
+
+        // Initialize
+        updateUI();
+
+    </script>
+</body>
+
+</html>

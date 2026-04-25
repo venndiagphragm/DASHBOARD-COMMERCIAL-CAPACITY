@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peta & Tarif Pipa - Pertamina Gas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <style>
+        .map-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            height: calc(100vh - 160px);
+            /* Adjust based on header/footer */
+            min-height: 600px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            z-index: 1;
+        }
+
+        .data-panel {
+            background: white;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .panel-header {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            color: var(--primary-blue);
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .panel-subtitle {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #444;
+            position: sticky;
+            top: 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            background: #f8f9fa;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container nav-flex">
+            <a href="{{ url_for('index') }}" class="brand-logo">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Pertamina Gas">
+            </a>
+            <div class="hamburger" id="hamburger-menu">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <nav class="popup-nav-container" id="main-nav">
+                <ul class="nav-tiles-grid">
+                    <li class="nav-tile-item"><a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+                    <li class="nav-tile-item"><a href="{{ url_for('profile') }}">Company Profile</a></li>
+                    <li class="nav-tile-item"><a href="{{ url_for('pricing_map') }}">Peta & Tarif</a></li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-tile-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="nav-tile-item"><a href="{{ url_for('insights') }}">Insights</a></li>
+                    <li class="nav-tile-item"><a href="{{ url_for('input_data') }}">Input Data</a></li>
+                    <li class="nav-tile-item logout-tile" style="grid-column: span 2;"><a href="{{ url_for('logout') }}">Logout</a></li>
+                    {% else %}
+                    <li class="nav-tile-item login-tile" style="grid-column: span 2;"><a href="{{ url_for('login') }}">Login</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <script>
+                document.getElementById('hamburger-menu').addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const nav = document.getElementById('main-nav');
+                    nav.classList.toggle('active');
+                });
+            </script>
+        </div>
+    </header>
+
+    <div class="container" style="padding-top: 30px; padding-bottom: 30px; max-width: 1600px;">
+        <div class="map-container">
+            <div id="map"></div>
+
+            <div class="data-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title" id="selected-area">Pilih Area</h2>
+                    <p class="panel-subtitle">Klik marker di peta untuk melihat detail.</p>
+                </div>
+
+                <div id="panel-content" style="display: none;">
+                    <div class="tab-buttons" style="display: none;">
+                        <button class="tab-btn active" onclick="switchTab('pipelines')">Info Pipa</button>
+                    </div>
+
+                    <div id="tab-pipelines" class="tab-content active">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ruas</th>
+                                        <th>KM</th>
+                                        <th>Cap (MMSCFD/BOPD)</th>
+                                        <th>Real (MMSCFD/BOPD)</th>
+                                        {% if current_user.is_authenticated %}
+                                        <th>Tarif ($/MSCF)</th>
+                                        {% endif %}
+                                        <th>Util (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pipeline-body">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if current_user.is_authenticated %}
+                    <div id="tab-shippers" class="tab-content">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Shipper</th>
+                                        <th>Ruas</th>
+                                        <th>Tarif Real</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="shipper-body">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div id="empty-state" style="text-align: center; color: #999; margin-top: 100px;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🗺️</div>
+                    <p>Silakan pilih area di peta</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        // Data passed from Flask
+        const pipelineData = {{ pipelines | tojson }};
+        const shipperData = {{ shippers | tojson }};
+
+        // Initialize Map
+        // Centered on Indonesia
+        const map = L.map('map').setView([-2.5489, 118.0149], 5);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Define Areas and Coordinates
+        const areas = [
+            { id: 'NSA', name: 'Northern Sumatra Area (NSA)', coords: [3.5952, 98.6722] }, // Medan approx
+            { id: 'SSA', name: 'Southern Sumatra Area (SSA)', coords: [-2.9761, 104.7754] }, // Palembang approx
+            { id: 'WJA', name: 'West Java Area (WJA)', coords: [-6.2088, 106.8456] }, // Jakarta approx
+            { id: 'EJA', name: 'East Java Area (EJA)', coords: [-7.2575, 112.7521] }, // Surabaya approx
+            { id: 'KAL', name: 'Kalimantan Area', coords: [-1.2654, 116.8312] }, // Balikpapan approx
+            { id: 'CSA', name: 'Central Sumatra Area (CSA)', coords: [0.5561, 101.4478] }, // Pekanbaru approx
+            { id: 'ROKAN', name: 'Rokan Area', coords: [1.25, 101.25] } // Rokan approx
+        ];
+
+        // Add Markers
+        areas.forEach(area => {
+            const marker = L.marker(area.coords).addTo(map);
+            marker.bindPopup(`<b>${area.name}</b><br>Klik untuk detail`);
+
+            marker.on('click', () => {
+                loadAreaDetails(area.id, area.name);
+            });
+        });
+
+        function loadAreaDetails(areaId, areaName) {
+            document.getElementById('selected-area').textContent = areaName;
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('panel-content').style.display = 'block';
+
+            // Populate Pipelines
+            const pipeBody = document.getElementById('pipeline-body');
+            pipeBody.innerHTML = '';
+            const pipes = pipelineData[areaId] || pipelineData[areaName] || [];
+
+            if (pipes.length === 0) {
+                pipeBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Tidak ada data pipa</td></tr>';
+            } else {
+                pipes.forEach(p => {
+                    const utilColor = p.utilization > 90 ? '#ef4444' : (p.utilization > 70 ? '#f59e0b' : '#10b981');
+                    const tr = document.createElement('tr');
+                    let tariffHtml = '';
+                    {% if current_user.is_authenticated %}
+                    tariffHtml = `<td>$${p.tariff}</td>`;
+                    {% endif %}
+                    tr.innerHTML = `
+                        <td title="${p.ruas}">${p.ruas}</td>
+                        <td>${p.km}</td>
+                        <td>${p.capacity ? p.capacity.toLocaleString() : '0'}</td>
+                        <td>${p.realization ? p.realization.toLocaleString() : '0'}</td>
+                        ${tariffHtml}
+                        <td style="font-weight: 700; color: ${utilColor}">
+                            ${p.utilization}%
+                        </td>
+                    `;
+                    pipeBody.appendChild(tr);
+                });
+            }
+
+            // Populate Shippers (if authenticated)
+            {% if current_user.is_authenticated %}
+            const shipBody = document.getElementById('shipper-body');
+            if (shipBody) {
+                shipBody.innerHTML = '';
+                const ships = shipperData[areaId] || [];
+
+                if (ships.length === 0) {
+                    shipBody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px;">Tidak ada data shipper</td></tr>';
+                } else {
+                    ships.forEach(s => {
+                        const tr = document.createElement('tr');
+                        const tariffDisplay = s.tariff_real !== null && s.tariff_real !== undefined ? `$${s.tariff_real}` : '-';
+                        tr.innerHTML = `
+                            <td>${s.shipper}</td>
+                            <td>${s.ruas}</td>
+                            <td>${tariffDisplay}</td>
+                        `;
+                        shipBody.appendChild(tr);
+                    });
+                }
+            }
+            {% endif %}
+        }
+
+        // Tab Switching
+        window.switchTab = function (tabName) {
+            // Buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

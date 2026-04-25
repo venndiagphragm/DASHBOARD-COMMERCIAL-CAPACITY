@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pertamina Gas - Contract Monitoring</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container nav-flex">
+            <a href="{{ url_for('index') }}" class="brand-logo">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Pertamina Gas">
+            </a>
+            <div class="hamburger" id="hamburger-menu">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <nav class="popup-nav-container" id="main-nav">
+                <ul class="nav-tiles-grid">
+                    <li class="nav-tile-item"><a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+                    <li class="nav-tile-item"><a href="{{ url_for('profile') }}">Company Profile</a></li>
+                    <li class="nav-tile-item"><a href="{{ url_for('pricing_map') }}">Peta & Tarif</a></li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-tile-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="nav-tile-item"><a href="{{ url_for('insights') }}">Insights</a></li>
+                    <li class="nav-tile-item"><a href="{{ url_for('input_data') }}">Input Data</a></li>
+                    <li class="nav-tile-item logout-tile" style="grid-column: span 2;"><a href="{{ url_for('logout') }}">Logout</a></li>
+                    {% else %}
+                    <li class="nav-tile-item login-tile" style="grid-column: span 2;"><a href="{{ url_for('login') }}">Login</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <script>
+                document.getElementById('hamburger-menu').addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const nav = document.getElementById('main-nav');
+                    nav.classList.toggle('active');
+                });
+            </script>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="container hero-content">
+            <h1>Sistem Monitoring<br>Kontrak Pipa Gas</h1>
+            <p>Platform terintegrasi untuk memantau status penyewaan, validasi tarif, dan analisis performa customer
+                Pertamina Gas secara real-time.</p>
+            <div class="hero-actions">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                        <line x1="9" y1="21" x2="9" y2="9"></line>
+                    </svg>
+                    Lihat Dashboard
+                </a>
+                <a href="{{ url_for('input_data') }}" class="btn btn-input">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Input Data Baru
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Stats (Floating Glass Cards) -->
+    {% if current_user.is_authenticated %}
+    <div class="container stats-container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Total Kontrak</h3>
+                    <p>{{ total }}</p>
+                </div>
+                <div class="icon-box">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-card alert">
+                <div class="stat-info">
+                    <h3>Butuh Follow Up</h3>
+                    <p>{{ urgent }}</p>
+                </div>
+                <div class="icon-box">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                        </path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-info">
+                    <h3>Kontrak Aktif</h3>
+                    <p>{{ active }}</p>
+                </div>
+                <div class="icon-box">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- Features Overview -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Fitur Utama</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon-wrapper">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                    </div>
+                    <h3>Real-time Dashboard</h3>
+                    <p>Pantau status kontrak customer secara real-time dengan indikator visual yang jelas dan
+                        terstruktur.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon-wrapper">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </div>
+                    <h3>Smart Alerts</h3>
+                    <p>Notifikasi otomatis untuk kontrak yang akan segera berakhir dalam 30 hari untuk antisipasi dini.
+                    </p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon-wrapper">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                            <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                        </svg>
+                    </div>
+                    <h3>Data Insights</h3>
+                    <p>Analisis tren penyewaan dan performa kontrak secara mendalam untuk mendukung pengambilan
+                        keputusan.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="pertamina-deco-footer">
+                <div class="p-blue" style="background-color: var(--primary-blue);"></div>
+                <div class="p-green" style="background-color: var(--primary-green);"></div>
+                <div class="p-red" style="background-color: var(--primary-red);"></div>
+            </div>
+            <p>&copy; 2024 Pertamina Gas. All Rights Reserved. Commercial Division.</p>
+        </div>
+    </footer>
+
+</body>
+
+</html>
