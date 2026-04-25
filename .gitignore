@@ -14,17 +14,16 @@ __pycache__/
 *.pyd
 
 # Instance folder
-instance/
+# instance/
 
 # Flask / deployment logs
 *.log
 *.sqlite3
 .db
-contracts.db
 
 # Sensitive Data / Excel / CSV
-*.xlsx
-*.csv
+# *.xlsx
+# *.csv
 
 # Vercel Serverless
 .vercel/

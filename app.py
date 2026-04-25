@@ -30,11 +30,19 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # Vercel Serverless environment handling (Read-Only FS workaround)
 if os.environ.get('VERCEL') == '1' or os.environ.get('VERCEL_ENV'):
     instance_path = '/tmp/instance' # Writable on Vercel
+    if not os.path.exists(instance_path):
+        os.makedirs(instance_path)
+    
+    # Copy pre-populated DB from repository to /tmp so we have data!
+    repo_db = os.path.join(basedir, 'instance', 'contracts.db')
+    tmp_db = os.path.join(instance_path, 'contracts.db')
+    if not os.path.exists(tmp_db) and os.path.exists(repo_db):
+        import shutil
+        shutil.copy2(repo_db, tmp_db)
 else:
     instance_path = os.path.join(basedir, 'instance')
-
-if not os.path.exists(instance_path):
-    os.makedirs(instance_path)
+    if not os.path.exists(instance_path):
+        os.makedirs(instance_path)
 
 # Fallback to local SQLite if DATABASE_URL/POSTGRES_URL is not set
 db_url = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL') or ('sqlite:///' + os.path.join(instance_path, 'contracts.db'))
