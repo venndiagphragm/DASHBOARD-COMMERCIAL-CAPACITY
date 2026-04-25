@@ -881,12 +881,13 @@ def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
+# Initialize DB when the app starts (required for Serverless environments like Vercel)
+with app.app_context():
+    # Only init if db doesn't exist and we are running in an ephemeral/Vercel state
+    # Or just always ensure tables exist
+    db.create_all()
+    # To import the mock data automatically in Vercel, we call init_db
+    init_db()
+
 if __name__ == '__main__':
-    if not os.path.exists("contracts.db"):
-        init_db()
-    else:
-        # Also ensure tables exist even if file exists (partial run?)
-        with app.app_context():
-            db.create_all()
-            
     app.run(debug=True, port=5001)
