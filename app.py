@@ -155,7 +155,7 @@ def init_db():
             
             # 2. Try CSV if Excel failed or didn't exist
             if not initial_data:
-                csv_path = os.path.join(os.path.dirname(__file__), "..", "Copy of MONITORING PERJANJIAN KOMERSIAL FUNGSI COMMERCIAL CAPACITY - Database.csv")
+                csv_path = os.path.join(os.path.dirname(__file__), "Copy of MONITORING PERJANJIAN KOMERSIAL FUNGSI COMMERCIAL CAPACITY - Database.csv")
                 if os.path.exists(csv_path):
                     print("Importing initial data from CSV...")
                     initial_data = parse_csv_data(csv_path)
@@ -198,7 +198,7 @@ def init_db():
             print("Pipelines/Shippers table empty. Importing from Combined File...")
             base_dir = os.path.dirname(os.path.abspath(__file__))
             parent_dir = os.path.dirname(base_dir) 
-            combined_path = os.path.join(parent_dir, 'Gabungan_Shipper_Ruas_Tarif (1).xlsx')
+            combined_path = os.path.join(base_dir, 'Gabungan_Shipper_Ruas_Tarif.xlsx')
             
             if os.path.exists(combined_path):
                 try:
@@ -478,8 +478,8 @@ def insights():
         # File Paths
         base_dir = os.path.dirname(os.path.abspath(__file__))
         parent_dir = os.path.dirname(base_dir)
-        gabungan_path = os.path.join(parent_dir, 'Gabungan_Shipper_Ruas_Tarif (1).xlsx')
-        monitoring_path = os.path.join(parent_dir, 'Copy of MONITORING PERJANJIAN KOMERSIAL FUNGSI COMMERCIAL CAPACITY - Database.csv')
+        gabungan_path = os.path.join(base_dir, 'Gabungan_Shipper_Ruas_Tarif.xlsx')
+        monitoring_path = os.path.join(base_dir, 'Copy of MONITORING PERJANJIAN KOMERSIAL FUNGSI COMMERCIAL CAPACITY - Database.csv')
 
         # 1. Load Data
         df_gabungan = pd.DataFrame()
